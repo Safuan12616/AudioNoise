@@ -1,3 +1,601 @@
 <html>
   <head>
     <title>Audio Noise Reductioner</title>
+    <link rel="canonical" href="https://audiodenoise.com/">
+    <meta name="viewport" content="width=device-width, initial-scale=0.47">
+<style>
+#sample {border-style: ridge;} 
+span {border-style: none;} 
+pre {font-size: x-large; 
+color:#009; 
+} 
+.lc1 {font-size: 1.0em; color: #009;}.lc2 {font-size: 1.0em; color: #8c2e7e;}.lc3 {font-size: 1.0em; color: #946932;}.lc4 {font-size: 1.0em; color: #009091;}pre {line-height:80%;}.tagline {font-size:0.92em; color: #009; font-weight:bold; display:inline-block; white-space:nowrap;}h1 {color: #009} 
+h3 {color: #009; font-size: 1.12em;} 
+#status {color: #009;} 
+#version {color: #009; font-size: x-small;} 
+.heading {background: none;border: none;color: #009;font-size: 1.12em;float: left;} 
+.expander {background: none;border-style: outset;color: #009;font-size: 1.12em;float: left;} 
+.btupload {border-radius: 8px;background-color: #fdcc56;width:10em;} 
+.btprocess {border-radius: 8px;background-color: #fdcc56;width:10em;} 
+.btcontrol {border-radius: 8px;background-color: #fdcc56;width:10em;} 
+.btfinish {border-radius: 8px;background-color: #fdcc56;font-size: smaller;width:15em;} 
+.btconfig {box-shadow:inset 0px 1px 0px 0px #ffffff;background:linear-gradient(to bottom, #ededed 5%, #dfdfdf 100%);background-color:#ededed;border-radius:6px;border:1px solid #dcdcdc;display:inline-block;color:#777777;font-size:15px;font-weight:bold;padding:2px 24px;text-decoration:none;text-shadow:0px 1px 0px #ffffff;} 
+.btconfig:hover {background:linear-gradient(to bottom, #dfdfdf 5%, #ededed 100%);background-color:#dfdfdf;} 
+.expandsymbol {border-style: none;font-size:larger;width:2em;float:left;} 
+.leftcol {width: 22%; horizontal-align: left; vertical-align: top;} 
+.expand {width: 22%; horizontal-align: left; vertical-align: top;} 
+.rightcell {text-align: right; vertical-align: bottom;} 
+.slider {border: 2px solid #dadada; height:0.5em;} 
+.controlgroup {display:inline-block; width:16em; line-height:0.5em; white-space:normal; font-size:large;}
+.controlgroup p {width:100%; height:0.5em; font-size:large;}
+a {font-size:large;} 
+.labels {width:12em; margin-right:16em; display:inline-block; white-space:normal; font-size:large;} 
+.dropdown {float:right;} 
+.container {white-space:nowrap;} 
+.contactlink {text-align:right; font-size:small;} 
+.version_info {position:relative; top:50px; left:50px; text-align:left; color:#009; font-size:x-small;} 
+.ttip {top:-10px;background-color:white;color:black;border-radius:5px;opacity:0;position:absolute;-webkit-transition: opacity 0.5s;-moz-transition: opacity 0.5s;-ms-transition: opacity 0.5s;-o-transition: opacity 0.5s;transition: opacity 0.5s;}.version_info:hover .ttip {opacity:1;} 
+.quotaleft {font-size:small;} 
+.quotafull {font-size:small; color:red;} 
+</style> 
+</head> 
+  <body> 
+<table style="width:50%"> 
+<tr> 
+<td style="width:40%"> 
+<pre>        <span class='lc1'>o</span>
+      <span class='lc1'>i</span>
+   <span class='lc1'>d</span><span class='lc4'> e n o i s e</span>
+  <span class='lc1'>u</span>            .
+<span class='lc1'>a</span>         <small>  c o m</small></pre></td> 
+<td style="width:5% vertical-align:middle; horizontal-align:right; padding-bottom:8em;"> 
+<td style='width:50%; vertical-align:bottom; horizontal-align:right; padding-bottom:2em;'> 
+<span class='tagline'>Online Audio Noise Reduction</span><br> 
+</td> 
+</td> 
+</tr> 
+</table> 
+<p><span id="status"> 
+waiting for file upload<br> 
+</span></p> 
+<br>
+<form method="post" enctype="multipart/form-data" id="mainform" onsubmit="statusWorking();"> 
+<table style='width:100%;'> 
+<tr><td class='leftcol'><button type="button" class='heading'>Input</button></td><td> 
+<table style='width:100%;'> 
+<tr><td> 
+ <input type="file" title="Max. 60MB" size="20" name="filename" onChange='startButtonEnable();'></td><td> 
+<div id='demoFrame'> Demo files    
+<select name='demofile' onChange='startButtonEnable(this.name);'> 
+<option value='' selected></option> 
+<option value='P15L20SNR+0.wav'>1. machinery noise, SNR 0 dB</option> 
+<option value='P19L18SNR+0.wav'>2. multitalker noise, SNR 0 dB</option> 
+<option value='P16L17SNR+0.wav'>3. machinery noise, SNR 0 dB</option> 
+<option value='P16L17SNR-10.wav'>4. machinery noise, SNR -10 dB</option> 
+</select> 
+</div> 
+<br><div id="up_progress" style="width:40%; height:15px; border:1px solid #000; overflow:hidden; display:none;"><div id="up_pbar" style="width:0%; height:15px; border-right:1px solid #000000; background: #7db9e8;"></div><div id="up_ppc" style="color:#000000; font-size:15px; font-style:italic; font-weight:bold; left:25px; position:relative; top:-16px;"></div></div></td></tr></table> 
+<div><div style='display:inline-block;vertical-align:top;'><br><br><input type="button"  class="btupload" value="Start" name="upload" id="upload" onClick="startUP();" disabled>
+<input type="hidden" id="upload_js" name="upload_js" value=""><input type="hidden" id="demo_js" name="demo_js" value=""><br><br> 
+</div></div></td></tr> 
+<script type="text/javascript">
+function enable_buttons() {
+  var button = document.getElementById('process');
+  button.disabled = false;
+  button = document.getElementById('continue');
+  button.disabled = false;
+  button = document.getElementById('previous');
+  button.disabled = false;
+  button = document.getElementById('retry');
+  button.disabled = false;
+  var filenum = 1;
+  button = document.getElementById('download'+filenum);
+  button.disabled = false;
+}
+</script>
+ 
+<input type='hidden' name='cconfig' id='cconfig' value=''> 
+<input type="hidden" id="ustats" name="ustats"  value=""> 
+
+<script type="text/javascript">
+
+// GA tracking
+(function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+(i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+})(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+ga('create', 'UA-61259432-1', 'auto');
+ga('send', 'pageview');
+// end GA tracking
+</script>
+
+
+<script type="text/javascript">
+var osctr=0; var osbytes=0;
+function expandCollapse(label, id, stateinput, caller) {
+obj1 = document.getElementById(id);
+if (obj1.style.display!=="none") {
+  obj1.style.display="none";
+  document.getElementById(stateinput).value = "+";
+} else {
+  obj1.style.display="block";
+  document.getElementById(stateinput).value = "-";
+}
+}
+
+function gainClick(caller) {
+obj = document.getElementById("gain");
+if (caller.checked) {
+  obj.style.display="inline-block";
+} else {
+  obj.style.display="none";
+}
+}
+
+function noiseParams(index) {
+obj1 = document.getElementById("noisefastestmodulation");
+obj2 = document.getElementById("noisemincomplexity");
+obj3 = document.getElementById("noiselocation");
+
+if ((index==0)||(index==1)) {
+  obj3.style.display="block";
+} else {
+  obj3.style.display="none";
+}
+
+if ((index==1)||(index==2)) {
+  obj1.style.display="block";
+} else {
+  obj1.style.display="none";
+}
+
+if (index==2) {
+  obj2.style.display="block";
+} else {
+  obj2.style.display="none";
+}
+
+}
+
+function statusWorking() {
+document.getElementById('status').innerHTML = 'working...';
+}
+
+function startButtonEnable(caller_name) {
+  var valid_input = false;
+  if (caller_name == 'demofile') {
+    document.getElementsByName('filename')[0].value = '';
+    valid_input = document.getElementsByName('demofile')[0].selectedIndex>0;
+  } else {
+    document.getElementsByName('demofile')[0].selectedIndex = 0;
+    var filesize = document.getElementsByName('filename')[0].files[0].size;
+    if (filesize>60000000) {
+      var msg = 'Sorry, that file is too large.\nAt most 60MB files are currently allowed for upload.\nThis is to avoid excessive server load.';
+      alert(msg);
+      document.getElementsByName('filename')[0].value = '';
+      osctr += 1; osbytes += filesize;
+    } else {
+      valid_input = true;
+    }
+  }
+  if (valid_input) {
+    document.getElementById('upload').disabled = false;
+  } else {
+    document.getElementById('upload').disabled = true;
+  }
+}
+
+function setConfig(config_str,config_id) {
+  window.config_str = config_str;
+  window.config_id = config_id;
+  var config = config_str.split('/');
+  document.getElementsByName('ctrlNoiseModelType')[0].selectedIndex = config[0];
+  document.getElementsByName('ctrlFeatureDomain')[0].selectedIndex = config[1];
+  document.getElementsByName('ctrlAmountOfNoiseReduction')[0].value = config[2];
+  document.getElementsByName('ctrlBlockSize')[0].value = config[3];
+  document.getElementsByName('ctrlNoiseFastestModulation')[0].value = config[4];
+  document.getElementsByName('ctrlNoiseLocation')[0].selectedIndex = config[5];
+  document.getElementsByName('similarity')[0].checked = (config[6]==='1');
+  document.getElementsByName('ctrlOutputTimeResolution')[0].value = config[7];
+  document.getElementsByName('ctrlInputTimeResolution')[0].value = config[8];
+  document.getElementsByName('ctrlNoiseMinComplexity')[0].value = config[9];
+  document.getElementsByName('withgain')[0].checked = false;
+  noiseParams(parseInt(config[0]));
+}
+
+function getConfig() {
+  var config_str = document.getElementsByName('ctrlNoiseModelType')[0].selectedIndex.toString();
+  config_str += '/' + document.getElementsByName('ctrlFeatureDomain')[0].selectedIndex.toString();
+  config_str += '/' + document.getElementsByName('ctrlAmountOfNoiseReduction')[0].value.toString();
+  config_str += '/' + document.getElementsByName('ctrlBlockSize')[0].value.toString();
+  config_str += '/' + document.getElementsByName('ctrlNoiseFastestModulation')[0].value.toString();
+  config_str += '/' + document.getElementsByName('ctrlNoiseLocation')[0].selectedIndex.toString();
+  config_str += document.getElementsByName('similarity')[0].checked?'/1':'/0';
+  config_str += '/' + document.getElementsByName('ctrlOutputTimeResolution')[0].value.toString();
+  config_str += '/' + document.getElementsByName('ctrlInputTimeResolution')[0].value.toString();
+  config_str += '/' + document.getElementsByName('ctrlNoiseMinComplexity')[0].value.toString();
+  config_str += document.getElementsByName('withgain')[0].checked?'/1':'/0';
+  config_str += document.getElementsByName('fixsettings')[0].checked?'/1':'/0';
+  return config_str;
+}
+
+function processStart() {
+  var config = window.name.split(';');
+  if (config.length<5) {
+    window.name = '0;;;;' + window.config_id;
+  } else {
+    B = parseInt(config[0]);
+    if (window.config_id.length>0) {
+      new_config_id = window.config_id;
+    } else {
+      new_config_id = (B==0)?config[1]:config[3];
+    }
+    window.name = B + ';' + config[1] + ';' + config[2] + ';' + config[3] + ';' + config[4] + ';' + new_config_id;
+  }
+}
+
+function processReady() {
+  var config = window.name.split(';');
+  var cfg_id = ['c00','c00'];
+  var cfg_str = ['',''];
+  var B = Number(config[0]);
+  if (config.length>4) {
+    cfg_id[0] = config[1];
+    cfg_str[0] = config[2];
+    cfg_id[1] = config[3];
+    cfg_str[1] = config[4];
+  }
+  if (config.length>5) {
+    info = config[5];
+    if (info!=='start') {
+      var current_config_str = document.getElementsByName('ctrlNoiseModelType')[0].selectedIndex.toString();
+      current_config_str += '/' + document.getElementsByName('ctrlFeatureDomain')[0].selectedIndex.toString();
+      current_config_str += '/' + document.getElementsByName('ctrlAmountOfNoiseReduction')[0].value.toString();
+      current_config_str += '/' + document.getElementsByName('ctrlBlockSize')[0].value.toString();
+      current_config_str += '/' + document.getElementsByName('ctrlNoiseFastestModulation')[0].value.toString();
+      current_config_str += '/' + document.getElementsByName('ctrlNoiseLocation')[0].selectedIndex.toString();
+      current_config_str += document.getElementsByName('similarity')[0].checked?'/1':'/0';
+      current_config_str += '/' + document.getElementsByName('ctrlOutputTimeResolution')[0].value.toString();
+      current_config_str += '/' + document.getElementsByName('ctrlInputTimeResolution')[0].value.toString();
+      current_config_str += '/' + document.getElementsByName('ctrlNoiseMinComplexity')[0].value.toString();
+      current_config_str += document.getElementsByName('withgain')[0].checked?'/1':'/0';
+      if ((info!==cfg_id[B])||(current_config_str!==cfg_str[B])) {
+        B = 1-B;
+        cfg_id[B] = info;
+        cfg_str[B] = current_config_str;
+      }
+    }
+  } else {
+    B = 1-B;
+  }
+  window.name = B + ';' + cfg_id[0] + ';' + cfg_str[0] + ';' + cfg_id[1] + ';' + cfg_str[1];
+  document.getElementsByName('cconfig')[0].value = cfg_id[B] + '-' + cfg_str[B];
+}
+
+function startEvent() {
+  demo_selected = document.getElementsByName('demofile')[0].selectedIndex;
+  if (demo_selected==0) {
+    ga('send', 'event', 'button', 'upload', 'WAV-upload', 0);
+  } else {
+    demo_id = 'demo-0' + demo_selected.toString();
+    ga('send', 'event', 'button', 'upload', demo_id, 0);
+  }
+  if (!(document.getElementsByName('fixsettings')[0].checked)) {
+    window.config_id = '';
+    window.name = '0;c00;;c00;;start';
+  } else {
+    var config = window.name.split(';');
+    if (config.length<5) {
+      window.name = '0;c00;;c00;;start';
+    } else {
+      B = parseInt(config[0]);
+      window.name = B + ';' + config[1] + ';' + config[2] + ';' + config[3] + ';' + config[4] + ';start';
+    }
+  }
+  document.getElementById("mainform").elements["ustats"].value = osctr+';'+osbytes;
+}
+
+function downloadEvent() {
+  if(window.downloaded) {
+    return;
+  }
+  var config = window.name.split(';');
+  if (config.length<5) {
+    c_cfg_id = '';
+    c_cfg_str = '';
+  } else {
+    B = parseInt(config[0]);
+    c_cfg_id = (B==0) ? config[1] : config[3];
+    c_cfg_str = (B==0) ? config[2] : config[4];
+  }
+  document.getElementsByName('cconfig')[0].value = c_cfg_id + '-' + c_cfg_str;
+  ga('send', 'event', 'button', 'download', 'WAV-download-'+c_cfg_id+'-'+c_cfg_str, 0);
+  window.downloaded = true;
+}
+
+window.config_id = '';
+window.config_str = '';
+window.downloaded = false;
+window.addEventListener ? window.addEventListener("load",processReady,false) : window.attachEvent && window.attachEvent("onload",processReady);
+</script>
+ 
+
+<tr><td class='expand'> 
+<span><button type="button" class='expander' onclick="expandCollapse('Settings','settings','expandS',this);">Settings</button><input type="text" name="expandS" id="expandS" class="expandsymbol" value="-" readonly></span></td> 
+<td> 
+<div id='settings' class='expanded' style='display:block'> 
+<table style="width=100%"> 
+<tr> 
+<td> 
+<div id='configurations' class='container' style='display:block'><div style='display:inline-block; width: 40%'><table style="width=100%"> 
+<tr><td style='vertical-align:top'>
+<label class='labels'>Preset configurations</label>
+</td></tr></table>
+</div>
+<div class='controlgroup'><button type="button"  class="btconfig" value="b00" name="b00" id="b00" onClick='setConfig("1/2/50/300/25/0/0/22.22/0/50",this.id);'> 1 </button>&nbsp;&nbsp;
+<button type="button"  class="btconfig" value="b01" name="b01" id="b01" onClick='setConfig("1/4/69.531/300/81.5625/0/0/0/0/50",this.id);'> 2 </button>&nbsp;&nbsp;
+<button type="button"  class="btconfig" value="b02" name="b02" id="b02" onClick='setConfig("1/2/42.917/300/97.9165/0/0/22.22/0/50",this.id);'> 3 </button>
+</div>
+</div><br> 
+<div id='noisemodel' style='display:block'><div style='display:inline-block; width: 40%'><table style="width=100%"> 
+<tr><td style='vertical-align:top'>
+<label class='labels'>Noise model type</label>
+</td></tr></table>
+</div>
+<div class='controlgroup'><select name="ctrlNoiseModelType" class='dropdown' onchange="noiseParams(this.selectedIndex);"> 
+<option value="mean" >mean (spectral subtraction)</option> 
+<option value="adgauss" selected>adapted distribution</option> 
+<option value="ar" >autoregressive model</option> 
+</select><br><br> 
+</div>
+</div> 
+<br> 
+<div>
+<div style='display:inline-block; width: 40%'><table style="width=100%"> 
+<tr><td style='vertical-align:top'>
+<label class='labels'>Enhancement spectral domain</label>
+</td></tr></table>
+</div>
+<div class='controlgroup'><select name="ctrlFeatureDomain" class='dropdown'> 
+<option value="magspec" >magnitude</option> 
+<option value="powspec" >power</option> 
+<option value="logspec" selected>logarithmic</option> 
+<option value="cepstrum" >cepstral</option> 
+<option value="mspec" >auditory</option> 
+</select> 
+</div>
+</div> 
+<br> 
+<div id='amountofnoisereduction' class='container' style='display:block;'><div class='controlgroup'><table style='width:100%; height:3.0em;'> 
+<tr><td style='vertical-align:top'>
+<br><label class='labels'>Amount of noise reduction</label><br>
+</td></tr></table>
+</div>
+<div class='controlgroup'><input name="ctrlAmountOfNoiseReduction" type="range" min="0" max="100" value="50" step="0.001" class="slider" style='width:100%;'><br> 
+<p>less <span style='float:right;'>more</span></p>
+</div>
+</div> 
+<div id='blocksize' class='container' style='display:block;'><div class='controlgroup'><table style='width:100%; height:3.0em;'> 
+<tr><td style='vertical-align:top'>
+<br><label class='labels'>Analysis block size</label><br>
+</td></tr></table>
+</div>
+<div class='controlgroup'><input name="ctrlBlockSize" type="range" min="100" max="1000" value="300" class="slider" style='width:100%;'><br> 
+<p>1 s <span style='float:right;'>10 s</span></p>
+</div>
+</div> 
+<div id='noisefastestmodulation' class='container' style='display:block;'><div class='controlgroup'><table style='width:100%; height:3.0em;'> 
+<tr><td style='vertical-align:top'>
+<br><label class='labels'>Noise modulation tracking</label><br>
+</td></tr></table>
+</div>
+<div class='controlgroup'><input name="ctrlNoiseFastestModulation" type="range" min="0" max="100" value="25" step="0.001" class="slider" style='width:100%;'><br> 
+<p>slow <span style='float:right;'>fast</span></p>
+</div>
+</div> 
+<div id='noisemincomplexity' class='container' style='display:none;'><div class='controlgroup'><table style='width:100%; height:3.0em;'> 
+<tr><td style='vertical-align:top'>
+<br><label class='labels'>Complexity of the noise model</label><br>
+</td></tr></table>
+</div>
+<div class='controlgroup'><input name="ctrlNoiseMinComplexity" type="range" min="0" max="100" value="60" class="slider" style='width:100%;'><br> 
+<p>low <span style='float:right;'>high</span></p>
+</div>
+</div> 
+<div id='noiselocation' class='container' style=display:block><div style='display:inline-block; width: 40%'><table style="width=100%"> 
+<tr><td style='vertical-align:top'>
+<br><label class='labels'>Model noise based on</label><br>
+</td></tr></table>
+</div>
+<div class='controlgroup'><select name="ctrlNoiseLocation"> 
+<option value="eli" selected>quiet instants</option> 
+<option value="els" >quiet segments</option> 
+<option value="ehi" >loud instants</option> 
+<option value="ehs" >loud segments</option> 
+<option value="all" >average</option> 
+<option value="beg" >beginning</option> 
+</select>
+&nbsp;&nbsp;<label class='cbox'>and similar <input type='checkbox' name='similarity' style='display:inline-block;' ></label>
+</div>
+</div><br>
+<div class='container'>
+<div style='display:inline-block; width: 40%'><table style="width=100%"> 
+<tr><td style='vertical-align:top'>
+<label class='labels'>Time smoothing of noise reduction filter</label>
+</td></tr></table>
+</div>
+<div class='controlgroup'><input name="ctrlOutputTimeResolution" type="range" min="0" max="100" class="slider" value="22.222222222222"> 
+<br> 
+</div></div><br><div class='container'>
+<div style='display:inline-block; width: 40%'><table style="width=100%"> 
+<tr><td style='vertical-align:top'>
+<label class='labels'>Time smoothing at input</label>
+</td></tr></table>
+</div>
+<div class='controlgroup'><input name="ctrlInputTimeResolution" type="range" min="0" max="100" class="slider" value="0"> 
+<br> 
+</div></div><br><div class='container' style='width:40%'>
+<div class='labels' style='width:18em'>
+<label>Adjust gain</label>
+<input type='checkbox' name='withgain' onclick='gainClick(this);' style='float:right;' ></div>
+<br><div style='width:32em'><div id='gain' class='controlgroup' style='display:none; width:15em; float:right'><input name="ctrlGain" type="range" min="-40" max="40" value="0" class="slider" style='width:100%;'><br> 
+<p>-40 dB <span style='float:right;'>+40 dB</span></p>
+</div></div></div><br><div class='labels' style='width:18em'>
+<label>Fix settings for another file</label>
+<input type='checkbox' name='fixsettings' style='float:right;' ></div>
+</td></tr> 
+</table> 
+</div> 
+</td></tr> 
+</table> 
+<table style="width:50%"> 
+<tr><td> 
+</td><td> 
+</td><td class='contactlink'> 
+<br><br><br><a href="help.html" onClick="ga('send', 'event', 'External Link', 'Page', 'helppage11', 0);">Help</a>&nbsp;&nbsp;
+<a href="info.html" onClick="ga('send', 'event', 'External Link', 'Page', 'infopage11', 0);">Site information</a></td></tr></table> 
+
+</form>
+
+<script type="text/javascript">
+ 
+var uploadStatus = {};
+var uploadc = 0;
+
+function resetProgress(filename,pc) {
+  var progress = document.getElementById('up_progress');
+  progress.style.display = 'inline-block';
+  var progressbar = document.getElementById('up_pbar');
+  progressbar.style.width = '0%';
+  var progresstxt = document.getElementById('up_ppc');
+  progresstxt.innerHTML = '0%';
+}
+
+function updateProgress(filename,pc,txt) {
+  var progressbar = document.getElementById('up_pbar');
+  progressbar.style.width = pc+'%';
+  var progresstxt = document.getElementById('up_ppc');
+  if (txt) {
+    if (uploadc!=parseInt(txt)) {
+      progressbar.style.background = '#FF0000';
+    }
+  }
+  progresstxt.innerHTML = pc+'%';
+}
+
+function progressFinished(filename) {
+  var progressbar = document.getElementById('up_pbar');
+  progressbar.style.background = '#008000';
+}
+
+function uploadFile(file) {
+  var total = file.size;
+  var loaded = 0;
+  var step = 2000000;
+
+  var xhr = new XMLHttpRequest();
+  var formData;
+  var chunk;
+
+  var proceed = true;
+  if (uploadStatus.hasOwnProperty(file.name)) {
+    if (uploadStatus[file.name]==1) {
+      proceed = false;
+    } else if (uploadStatus[file.name]==2) {
+      proceed = confirm('A file named ' + file.name + ' has already been uploaded. Do you want to upload it again?');
+    }
+  }
+  if (!proceed) {
+    return;
+  }
+  resetProgress(file.name);
+  uploadStatus[file.name] = 1;
+
+  xhr.onload = function () {
+    loaded += step;
+    if (xhr.responseText.slice(0,2) === 'OK') {
+      finpc = (loaded / total) * 100;
+      finpc = Math.min(finpc.toPrecision(3),100.0);
+      txt = xhr.responseText.substr(3);
+      updateProgress(file.name,finpc,txt);
+    }
+    if (loaded < total) {
+      formData = new FormData();
+      chunk = file.slice(loaded, loaded + step);
+      formData.append('filename', chunk, file.name);
+      formData.append('sentbytes', loaded + step);
+      formData.append('totalsize',total);
+      formData.append('uploadc',++uploadc);
+      xhr.open('POST', 'receive.php', true);
+      xhr.send(formData);
+    } else {
+      loaded = total;
+      uploadStatus[file.name] = 2;
+      progressFinished(file.name);
+      checkConfig();
+      if (xhr.status === 200) {
+        var theform = document.getElementById("mainform");
+        theform.elements["ustats"].value = osctr+';'+osbytes;
+        theform.elements["filename"].value = "";
+        theform.elements["upload_js"].value = file.name;
+        theform.submit();
+      } else {
+        alert('An error occurred!');
+        document.getElementById("mainform").submit();
+      }
+
+    }
+  }
+  formData = new FormData();
+  chunk = file.slice(loaded, loaded + step);
+  formData.append('filename', chunk, file.name);
+  formData.append('newfile', 1); //
+  formData.append('sentbytes', loaded + step);
+  formData.append('totalsize',total);
+  formData.append('uploadc',++uploadc);
+  formData.append('config',getConfig());
+  xhr.open('POST', 'receive.php', true);
+  xhr.send(formData);
+}
+
+
+function checkConfig() {
+if (!(document.getElementsByName('fixsettings')[0].checked)) {
+    window.config_id = '';
+    window.name = '0;c00;;c00;;start';
+  } else {
+    var config = window.name.split(';');
+    if (config.length<5) {
+      window.name = '0;c00;;c00;;start';
+    } else {
+      B = parseInt(config[0]);
+      window.name = B + ';' + config[1] + ';' + config[2] + ';' + config[3] + ';' + config[4] + ';start';
+    }
+  }
+  document.getElementById("mainform").elements["ustats"].value = osctr+';'+osbytes;
+}
+
+function startUP() {
+  var theform = document.getElementById("mainform");
+  var file = theform.elements["filename"];
+  theform.setAttribute("onSubmit", "setTimeout(function(){window.location.reload();},10);");
+  if(file.files.length>0) {
+    ga('send', 'event', 'button', 'upload', 'R1-upload', 0);    statusWorking();
+    uploadFile(file.files[0]);
+  } else {
+    var demo = document.getElementsByName('demofile')[0].selectedIndex;
+    if(demo>0) {
+      demo_id = 'demo-js' + demo.toString();
+      ga('send', 'event', 'button', 'upload', demo_id, 0);
+      checkConfig();
+      theform.elements["demo_js"].value = demo.toString();
+      statusWorking();
+      theform.submit();
+    }
+  }
+}
+</script>
+
+</body>
+</html>
